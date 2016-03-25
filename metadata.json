@@ -1,8 +1,8 @@
 {
     "name": "box-clusterrunner",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "source": "https://github.com/box/puppet-clusterrunner",
-    "author": "nadeemahmad",
+    "author": "Nadeem Ahmad <nadeemahmad91@gmail.com>",
     "license": "Apache 2.0",
     "summary": "Installs ClusterRunner with Puppet",
     "project_page": "https://forge.puppetlabs.com/box/clusterrunner",
