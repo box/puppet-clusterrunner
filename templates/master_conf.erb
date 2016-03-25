@@ -1,0 +1,28 @@
+## Type:        string
+## ServiceRestart: clusterrunner_master
+#
+# ClusterRunner master hostname
+#
+MASTER_HOST="<%= @master %>"
+
+## Type:        integer(0:65535)
+## ServiceRestart: clusterrunner_master
+#
+# ClusterRunner master port
+#
+MASTER_PORT="<%= @master_port %>"
+
+## Type:        string
+## ServiceRestart: clusterrunner_master
+#
+# The name of the ClusterRunner service user
+#
+CLUSTERRUNNER_USER="<%= @user %>"
+
+## Type:        string
+## ServiceRestart: clusterrunner_master
+#
+# The home directory of the ClusterRunner service user
+# (where ClusterRunner is installed)
+#
+CLUSTERRUNNER_HOME="<%= @home %>"

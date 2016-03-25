@@ -1,0 +1,71 @@
+#!/bin/bash
+# clusterrunner_slave - start, stop, and restart the ClusterRunner slave service
+
+LOG_FILE=/var/log/clusterrunner/slave.log
+CONF_PATH=/etc/clusterrunner/slave_conf
+test -e "${CONF_PATH}" || { echo "${CONF_PATH} doesn't exist"; exit 1; }
+test -r "${CONF_PATH}" || { echo "${CONF_PATH} not readable. Perhaps you forgot 'sudo'?"; exit 1; }
+test -e "${LOG_FILE}" || { echo "${LOG_FILE} doesn't exist"; exit 1; }
+test -r "${CONF_PATH}" || { echo "${LOG_FILE} not readable. Perhaps you forgot 'sudo'?"; exit 1; }
+source "${CONF_PATH}"
+
+MASTER_API_ENDPOINT="${MASTER_HOST}:${MASTER_PORT}"
+CONNECTION_TIMEOUT='5'
+
+status() {
+  echo "First checking status of ClusterRunner master..."
+  curl -s -f -I -o /dev/null --connect-timeout "${CONNECTION_TIMEOUT}" -X GET "${MASTER_API_ENDPOINT}/v1"
+  if [ "$?" -ne 0 ]; then
+    echo "The ClusterRunner master is not responsive on ${MASTER_API_ENDPOINT}"
+    exit 1
+  else
+    echo "The ClusterRunner master is responsive on ${MASTER_API_ENDPOINT}"
+  fi
+
+  SLAVES_ENDPOINT_OUTPUT="$(curl -s --connect-timeout "${CONNECTION_TIMEOUT}" -X GET "${MASTER_API_ENDPOINT}/v1/slave")"
+  echo "${SLAVES_ENDPOINT_OUTPUT}" | grep "${SLAVE_HOST}" > /dev/null
+  if [ "$?" -ne 0 ]; then
+    echo "The ClusterRunner slave ${SLAVE_HOST} is not responsive on ${MASTER_API_ENDPOINT}"
+    exit 1
+  else
+    echo "The ClusterRunner slave ${SLAVE_HOST} is responsive on ${MASTER_API_ENDPOINT}"
+    exit 0
+  fi
+}
+
+start() {
+  echo "Attempting to start clusterrunner_slave service"
+  su "${ClUSTERRUNNER_USER}" -c "/usr/bin/nohup ${CLUSTERRUNNER_HOME}/.clusterrunner/dist/clusterrunner slave --master-url "${MASTER_API_ENDPOINT}" --port ${SLAVE_PORT} >> ${LOG_FILE} 2>&1 &"
+  echo "Waiting 3 seconds to give the service time to start up"
+  sleep 3
+  status
+}
+
+
+stop() {
+  echo "Killing the clusterrunner_slave service"
+  pkill -15 clusterrunner
+  echo "Waiting 10 seconds to ensure the process is killed"
+  sleep 10
+}
+
+case "$1" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  status)
+    status
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
